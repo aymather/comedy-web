@@ -23,11 +23,13 @@ import { useState } from 'react';
 interface EventDatePickerControlProps {
 	selectedDate: CalendarDate;
 	setSelectedDate: (date: CalendarDate) => void;
+	size?: 'md' | 'sm';
 }
 
 const EventDatePickerControl: React.FC<EventDatePickerControlProps> = ({
 	selectedDate,
-	setSelectedDate
+	setSelectedDate,
+	size = 'md'
 }) => {
 	const tz = getLocalTimeZone();
 	const todayDate = today(tz);
@@ -54,23 +56,45 @@ const EventDatePickerControl: React.FC<EventDatePickerControlProps> = ({
 			startOfWeek(todayDate, 'en-US').add({ days: 7 })
 		) === 0;
 
+	// Size-based styles
+	const sizeStyles = {
+		md: {
+			dayButton: 'w-14 h-14 text-lg',
+			arrowButton: 'w-8 h-8',
+			weekday: 'text-xs',
+			gap: 'gap-2',
+			margin: 'my-2',
+			label: 'text-xs'
+		},
+		sm: {
+			dayButton: 'w-9 h-9 text-sm',
+			arrowButton: 'w-6 h-6',
+			weekday: 'text-[10px]',
+			gap: 'gap-1',
+			margin: 'my-1',
+			label: 'text-xs'
+		}
+	}[size];
+
 	return (
 		<div>
 			{/* Week label */}
 			<div
-				className={`text-xs text-default-400 text-center mb-4 font-medium select-none ${!(isThisWeek || isNextWeek) && 'text-transparent'}`}
+				className={`${sizeStyles.label} text-default-400 text-center mb-4 font-medium select-none ${!(isThisWeek || isNextWeek) && 'text-transparent'}`}
 			>
 				{isThisWeek ? 'This Week' : 'Next Week'}
 			</div>
-			<div className="flex flex-row items-center justify-center gap-2 my-2">
+			<div
+				className={`flex flex-row items-center justify-center ${sizeStyles.gap} ${sizeStyles.margin}`}
+			>
 				{/* Left Arrow */}
 				<button
 					onClick={() => canGoLeft && setWeekStartDate(prevWeekStart)}
 					disabled={!canGoLeft}
-					className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors mr-2 ${!canGoLeft ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+					className={`${sizeStyles.arrowButton} flex items-center justify-center rounded-full transition-colors mr-2 ${!canGoLeft ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
 					aria-label="Previous week"
 				>
-					<ChevronLeft size={20} />
+					<ChevronLeft size={size === 'sm' ? 16 : 20} />
 				</button>
 
 				{/* Week Dates */}
@@ -105,18 +129,25 @@ const EventDatePickerControl: React.FC<EventDatePickerControlProps> = ({
 					}
 
 					const jsDate = date.toDate(tz);
-					const weekday = new Intl.DateTimeFormat('en-US', {
-						weekday: 'short'
-					})
-						.format(jsDate)
-						.toLowerCase();
+					const weekday =
+						size === 'sm'
+							? new Intl.DateTimeFormat('en-US', {
+									weekday: 'narrow'
+								}).format(jsDate)
+							: new Intl.DateTimeFormat('en-US', {
+									weekday: 'short'
+								})
+									.format(jsDate)
+									.toLowerCase();
 
 					return (
 						<div
 							key={date.toString()}
 							className="flex flex-col items-center"
 						>
-							<span className={`text-xs mb-1 text-gray-400`}>
+							<span
+								className={`${sizeStyles.weekday} mb-1 text-gray-400`}
+							>
 								{weekday}
 							</span>
 							<button
@@ -124,7 +155,7 @@ const EventDatePickerControl: React.FC<EventDatePickerControlProps> = ({
 									if (!disabled) setSelectedDate(date);
 								}}
 								disabled={disabled}
-								className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-medium transition-colors ${btnClass} ${textClass}`}
+								className={`${sizeStyles.dayButton} rounded-full flex items-center justify-center font-medium transition-colors ${btnClass} ${textClass}`}
 							>
 								{date.day}
 							</button>
@@ -135,10 +166,10 @@ const EventDatePickerControl: React.FC<EventDatePickerControlProps> = ({
 				{/* Right Arrow */}
 				<button
 					onClick={() => setWeekStartDate(nextWeekStart)}
-					className="w-8 h-8 flex items-center justify-center rounded-full transition-colors ml-2 hover:bg-gray-200 dark:hover:bg-gray-700"
+					className={`${sizeStyles.arrowButton} flex items-center justify-center rounded-full transition-colors ml-2 hover:bg-gray-200 dark:hover:bg-gray-700`}
 					aria-label="Next week"
 				>
-					<ChevronRight size={20} />
+					<ChevronRight size={size === 'sm' ? 16 : 20} />
 				</button>
 
 				{/* Calendar Popover Button */}

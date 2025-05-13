@@ -3,12 +3,15 @@ import HostBreadcrumbs from '@/components/HostBreadcrumbs';
 import SearchAndSelectPlaceId from '@/components/SearchAndSelectPlaceId';
 import { roomApiSlice } from '@/flux/api/room';
 import { venueApiSlice } from '@/flux/api/venue';
+import { venueImageApiSlice } from '@/flux/api/venue-image';
+import { VenueImageTag } from '@/flux/api/venue-image/types';
 import DefaultLayout from '@/layouts/default';
 import { NanoId } from '@/types';
 import {
 	addToast,
 	Avatar,
 	Button,
+	Image,
 	Input,
 	Link,
 	Modal,
@@ -16,7 +19,8 @@ import {
 	ModalContent,
 	ModalFooter,
 	ModalHeader,
-	Textarea,
+	Select,
+	SelectItem,
 	useDisclosure,
 	User
 } from '@heroui/react';
@@ -39,19 +43,49 @@ const VenuePage = () => {
 		onOpen: openRoomModal,
 		onOpenChange: onRoomModalChange
 	} = useDisclosure();
+
+	const {
+		isOpen: isVenueImageModalOpen,
+		onOpen: openVenueImageModal,
+		onOpenChange: onVenueImageModalChange
+	} = useDisclosure();
+
+	const {
+		isOpen: isEditVenueImageModalOpen,
+		onOpen: openEditVenueImageModal,
+		onOpenChange: onEditVenueImageModalChange
+	} = useDisclosure();
+
 	const [form, setForm] = useState({
 		name: '',
-		profile_image_url: '',
-		description: ''
+		profile_image_url: ''
 	});
 	const [formError, setFormError] = useState('');
 	const [roomName, setRoomName] = useState('');
 	const [roomError, setRoomError] = useState('');
 	const [formTouched, setFormTouched] = useState(false);
 
+	const [venueImageForm, setVenueImageForm] = useState({
+		url: '',
+		tag: VenueImageTag.OTHER
+	});
+	const [venueImageError, setVenueImageError] = useState('');
+
+	const [editingVenueImage, setEditingVenueImage] = useState<{
+		venue_image_uid: NanoId;
+		url: string;
+		tag: VenueImageTag;
+	} | null>(null);
+
 	const [createRoomMutation] = roomApiSlice.useCreateRoomMutation();
 	const [updateVenueMutation] = venueApiSlice.useUpdateVenueMutation();
 	const [deleteVenueMutation] = venueApiSlice.useDeleteVenueMutation();
+	const [createVenueImageMutation] =
+		venueImageApiSlice.useCreateVenueImageMutation();
+	const [updateVenueImageMutation] =
+		venueImageApiSlice.useUpdateVenueImageMutation();
+	const [deleteVenueImageMutation] =
+		venueImageApiSlice.useDeleteVenueImageMutation();
 	const { data, isLoading, isError } = venueApiSlice.useFindOneVenueQuery(
 		{
 			params: {
@@ -68,8 +102,7 @@ const VenuePage = () => {
 		if (data) {
 			setForm({
 				name: data.name ?? '',
-				profile_image_url: data.profile_image_url ?? '',
-				description: data.description ?? ''
+				profile_image_url: data.profile_image_url ?? ''
 			});
 			setFormTouched(false);
 		}
@@ -194,6 +227,131 @@ const VenuePage = () => {
 		}
 	};
 
+	const handleCreateVenueImage = async () => {
+		if (!venue_uid || !host_uid) return;
+		if (!venueImageForm.url.trim()) {
+			setVenueImageError('URL cannot be empty');
+			return;
+		}
+
+		try {
+			await createVenueImageMutation({
+				params: { host_uid, venue_uid },
+				body: venueImageForm
+			}).unwrap();
+
+			setVenueImageForm({
+				url: '',
+				tag: VenueImageTag.OTHER
+			});
+			setVenueImageError('');
+			onVenueImageModalChange();
+			addToast({
+				title: 'Success',
+				description: 'Venue image added successfully',
+				variant: 'solid',
+				color: 'success'
+			});
+		} catch (error) {
+			console.error(error);
+			addToast({
+				title: 'Failed to add venue image',
+				description: 'Please try again',
+				variant: 'solid',
+				color: 'danger'
+			});
+		}
+	};
+
+	const handleEditVenueImage = async () => {
+		if (!venue_uid || !host_uid || !editingVenueImage) return;
+		if (!venueImageForm.url.trim()) {
+			setVenueImageError('URL cannot be empty');
+			return;
+		}
+
+		try {
+			await updateVenueImageMutation({
+				params: {
+					host_uid,
+					venue_uid,
+					venue_image_uid: editingVenueImage.venue_image_uid
+				},
+				body: venueImageForm
+			}).unwrap();
+
+			setVenueImageForm({
+				url: '',
+				tag: VenueImageTag.OTHER
+			});
+			setVenueImageError('');
+			setEditingVenueImage(null);
+			onEditVenueImageModalChange();
+			addToast({
+				title: 'Success',
+				description: 'Venue image updated successfully',
+				variant: 'solid',
+				color: 'success'
+			});
+		} catch (error) {
+			console.error(error);
+			addToast({
+				title: 'Failed to update venue image',
+				description: 'Please try again',
+				variant: 'solid',
+				color: 'danger'
+			});
+		}
+	};
+
+	const handleDeleteVenueImage = async () => {
+		if (!venue_uid || !host_uid || !editingVenueImage) return;
+
+		try {
+			await deleteVenueImageMutation({
+				params: {
+					host_uid,
+					venue_uid,
+					venue_image_uid: editingVenueImage.venue_image_uid
+				}
+			}).unwrap();
+
+			setEditingVenueImage(null);
+			setVenueImageForm({
+				url: '',
+				tag: VenueImageTag.OTHER
+			});
+			onEditVenueImageModalChange();
+			addToast({
+				title: 'Success',
+				description: 'Venue image deleted successfully',
+				variant: 'solid',
+				color: 'success'
+			});
+		} catch (error) {
+			console.error(error);
+			addToast({
+				title: 'Failed to delete venue image',
+				description: 'Please try again',
+				variant: 'solid',
+				color: 'danger'
+			});
+		}
+	};
+
+	const handleImageClick = (image: {
+		venue_image_uid: NanoId;
+		url: string;
+		tag: VenueImageTag;
+	}) => {
+		setEditingVenueImage(image);
+		setVenueImageForm({
+			url: image.url,
+			tag: image.tag
+		});
+		openEditVenueImageModal();
+	};
+
 	return (
 		<DefaultLayout>
 			<div className="container mx-auto max-w-7xl px-4 pb-16 dark:bg-black min-h-screen">
@@ -296,6 +454,49 @@ const VenuePage = () => {
 							</div>
 						)}
 					</div>
+					{/* Venue Images Section */}
+					<div className="w-full max-w-2xl mx-auto">
+						<div className="flex justify-between items-center mb-4">
+							<h2 className="text-xl font-semibold">
+								Venue Images
+							</h2>
+							<Button
+								color="primary"
+								variant="flat"
+								onPress={openVenueImageModal}
+								startContent={
+									<AddNoteBulkIcon className={iconClasses} />
+								}
+							>
+								Add Image
+							</Button>
+						</div>
+						<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+							{data.images && data.images.length > 0 ? (
+								data.images.map((image) => (
+									<button
+										key={image.venue_image_uid}
+										className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-800 cursor-pointer hover:opacity-90 transition-opacity"
+										onClick={() => handleImageClick(image)}
+										aria-label={`Edit ${image.tag} image`}
+									>
+										<Image
+											src={image.url}
+											alt={`Venue image - ${image.tag}`}
+											className="object-cover w-full h-full"
+										/>
+										<div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white p-2 text-sm">
+											{image.tag}
+										</div>
+									</button>
+								))
+							) : (
+								<div className="col-span-full text-default-400 dark:text-neutral-400 italic text-center">
+									No images for this venue.
+								</div>
+							)}
+						</div>
+					</div>
 					{/* Venue Info Card */}
 					<div className="w-full max-w-2xl bg-white dark:bg-neutral-900 rounded-lg shadow p-6">
 						{/* Unsaved changes indicator */}
@@ -304,8 +505,7 @@ const VenuePage = () => {
 								JSON.stringify({
 									name: data.name ?? '',
 									profile_image_url:
-										data.profile_image_url ?? '',
-									description: data.description ?? ''
+										data.profile_image_url ?? ''
 								}) && (
 								<div className="mb-2 text-warning-600 dark:text-yellow-400 font-medium text-sm">
 									You have unsaved changes
@@ -335,13 +535,6 @@ const VenuePage = () => {
 								onChange={handleInputChange}
 								type="url"
 							/>
-							<Textarea
-								name="description"
-								label="Description"
-								placeholder="Enter description"
-								value={form.description}
-								onChange={handleInputChange}
-							/>
 							{formError && (
 								<div className="text-danger text-sm mt-1">
 									{formError}
@@ -356,8 +549,7 @@ const VenuePage = () => {
 										setForm({
 											name: data.name ?? '',
 											profile_image_url:
-												data.profile_image_url ?? '',
-											description: data.description ?? ''
+												data.profile_image_url ?? ''
 										});
 										setFormError('');
 									}}
@@ -411,6 +603,151 @@ const VenuePage = () => {
 									onPress={handleCreateRoom}
 								>
 									Create
+								</Button>
+							</ModalFooter>
+						</>
+					)}
+				</ModalContent>
+			</Modal>
+			{/* Venue Image Modal */}
+			<Modal
+				isOpen={isVenueImageModalOpen}
+				onOpenChange={onVenueImageModalChange}
+				placement="top-center"
+			>
+				<ModalContent>
+					{(onClose) => (
+						<>
+							<ModalHeader className="flex flex-col gap-1">
+								Add Venue Image
+							</ModalHeader>
+							<ModalBody>
+								<Input
+									label="Image URL"
+									placeholder="Enter image URL"
+									value={venueImageForm.url}
+									onChange={(e) => {
+										setVenueImageForm((prev) => ({
+											...prev,
+											url: e.target.value
+										}));
+										setVenueImageError('');
+									}}
+									isRequired
+									isInvalid={!!venueImageError}
+									errorMessage={venueImageError}
+								/>
+								<Select
+									label="Image Type"
+									selectedKeys={[venueImageForm.tag]}
+									onChange={(e) => {
+										setVenueImageForm((prev) => ({
+											...prev,
+											tag: e.target.value as VenueImageTag
+										}));
+									}}
+								>
+									{Object.values(VenueImageTag).map((tag) => (
+										<SelectItem key={tag}>
+											{tag.charAt(0).toUpperCase() +
+												tag.slice(1)}
+										</SelectItem>
+									))}
+								</Select>
+							</ModalBody>
+							<ModalFooter>
+								<Button
+									color="danger"
+									variant="flat"
+									onPress={onClose}
+								>
+									Cancel
+								</Button>
+								<Button
+									color="primary"
+									onPress={handleCreateVenueImage}
+								>
+									Add Image
+								</Button>
+							</ModalFooter>
+						</>
+					)}
+				</ModalContent>
+			</Modal>
+			{/* Edit Venue Image Modal */}
+			<Modal
+				isOpen={isEditVenueImageModalOpen}
+				onOpenChange={onEditVenueImageModalChange}
+				placement="top-center"
+			>
+				<ModalContent>
+					{(onClose) => (
+						<>
+							<ModalHeader className="flex flex-col gap-1">
+								Edit Venue Image
+							</ModalHeader>
+							<ModalBody>
+								<Input
+									label="Image URL"
+									placeholder="Enter image URL"
+									value={venueImageForm.url}
+									onChange={(e) => {
+										setVenueImageForm((prev) => ({
+											...prev,
+											url: e.target.value
+										}));
+										setVenueImageError('');
+									}}
+									isRequired
+									isInvalid={!!venueImageError}
+									errorMessage={venueImageError}
+								/>
+								<Select
+									label="Image Type"
+									selectedKeys={[venueImageForm.tag]}
+									onChange={(e) => {
+										setVenueImageForm((prev) => ({
+											...prev,
+											tag: e.target.value as VenueImageTag
+										}));
+									}}
+								>
+									{Object.values(VenueImageTag).map((tag) => (
+										<SelectItem key={tag}>
+											{tag.charAt(0).toUpperCase() +
+												tag.slice(1)}
+										</SelectItem>
+									))}
+								</Select>
+							</ModalBody>
+							<ModalFooter>
+								<Button
+									color="danger"
+									variant="flat"
+									onPress={handleDeleteVenueImage}
+								>
+									Delete
+								</Button>
+								<div className="flex-1" />
+								<Button
+									color="default"
+									variant="flat"
+									onPress={() => {
+										setEditingVenueImage(null);
+										setVenueImageForm({
+											url: '',
+											tag: VenueImageTag.OTHER
+										});
+										onClose();
+									}}
+								>
+									Cancel
+								</Button>
+								<Button
+									color="primary"
+									onPress={handleEditVenueImage}
+								>
+									Save Changes
 								</Button>
 							</ModalFooter>
 						</>

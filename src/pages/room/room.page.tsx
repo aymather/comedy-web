@@ -2,7 +2,7 @@ import HostBreadcrumbs from '@/components/HostBreadcrumbs';
 import { roomApiSlice } from '@/flux/api/room';
 import DefaultLayout from '@/layouts/default';
 import { NanoId } from '@/types';
-import { addToast, Avatar, Button, Input, Textarea } from '@heroui/react';
+import { addToast, Avatar, Button, Input } from '@heroui/react';
 import { DeleteDocumentBulkIcon } from '@heroui/shared-icons';
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
@@ -20,7 +20,6 @@ const RoomPage = () => {
 
 	const [form, setForm] = useState({
 		name: '',
-		description: '',
 		profile_image_url: ''
 	});
 	const [formError, setFormError] = useState('');
@@ -43,7 +42,6 @@ const RoomPage = () => {
 		if (data) {
 			setForm({
 				name: data.name ?? '',
-				description: data.description ?? '',
 				profile_image_url: data.profile_image_url ?? ''
 			});
 			setFormTouched(false);
@@ -147,7 +145,6 @@ const RoomPage = () => {
 							JSON.stringify(form) !==
 								JSON.stringify({
 									name: data.name ?? '',
-									description: data.description ?? '',
 									profile_image_url:
 										data.profile_image_url ?? ''
 								}) && (
@@ -179,13 +176,6 @@ const RoomPage = () => {
 								onChange={handleInputChange}
 								type="url"
 							/>
-							<Textarea
-								name="description"
-								label="Description"
-								placeholder="Enter description"
-								value={form.description}
-								onChange={handleInputChange}
-							/>
 							{formError && (
 								<div className="text-danger text-sm mt-1">
 									{formError}
@@ -199,7 +189,6 @@ const RoomPage = () => {
 									onPress={() => {
 										setForm({
 											name: data.name ?? '',
-											description: data.description ?? '',
 											profile_image_url:
 												data.profile_image_url ?? ''
 										});

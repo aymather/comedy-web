@@ -1,5 +1,6 @@
 import Map from '@/components/Map';
-import { hostApiSlice } from '@/flux/api/host';
+import { Host, hostApiSlice } from '@/flux/api/host';
+import { Venue } from '@/flux/api/venue';
 import { HostMapMarker } from './MapMarkers';
 
 const placeDetails = {
@@ -42,11 +43,12 @@ const placeDetails = {
 	]
 };
 
-const HomeMap = ({
-	hoveredEventVenueUid
-}: {
+interface HomeMapProps {
 	hoveredEventVenueUid: string | null;
-}) => {
+	onVenueSelect: (host: Host, venue: Venue) => void;
+}
+
+const HomeMap = ({ hoveredEventVenueUid, onVenueSelect }: HomeMapProps) => {
 	const { data: hosts } = hostApiSlice.useFindAllHostsQuery();
 
 	const center = {
@@ -72,6 +74,7 @@ const HomeMap = ({
 					key={host.host_uid}
 					host={host}
 					hoveredEventVenueUid={hoveredEventVenueUid}
+					onVenueSelect={onVenueSelect}
 				/>
 			))}
 		</Map>

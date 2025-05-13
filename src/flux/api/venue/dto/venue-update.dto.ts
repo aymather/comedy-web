@@ -8,7 +8,6 @@ export interface UpdateVenueParamsDto {
 
 export interface UpdateVenueBodyDto {
 	name?: string;
-	description?: string;
 	profile_image_url?: string;
 	place_id?: string;
 }

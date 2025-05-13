@@ -9,7 +9,6 @@ export interface UpdateRoomParamsDto {
 
 export interface UpdateRoomBodyDto {
 	name: string;
-	description: string;
 	profile_image_url: string;
 }
 

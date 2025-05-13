@@ -5,15 +5,19 @@ import { Image } from '@heroui/react';
 import { AdvancedMarker } from '@vis.gl/react-google-maps';
 
 interface VenueMapMarkerProps {
+	host: Host;
 	venue: Venue;
 	image_url: string | null;
 	isHovered: boolean;
+	onSelect: (host: Host, venue: Venue) => void;
 }
 
 export const VenueMapMarker: React.FC<VenueMapMarkerProps> = ({
+	host,
 	venue,
 	image_url,
-	isHovered
+	isHovered,
+	onSelect
 }) => {
 	const { data } = googleMapsApiSlice.useGetLocationDetailsByPlaceIdQuery(
 		{
@@ -34,11 +38,12 @@ export const VenueMapMarker: React.FC<VenueMapMarkerProps> = ({
 				lat: data.latitude,
 				lng: data.longitude
 			}}
+			onClick={() => onSelect(host, venue)}
 		>
 			<Image
 				src={image_url || venue.profile_image_url || ''}
 				alt={venue.name}
-				className="h-6 w-6 object-cover rounded-full border-1 hover:border-default-900"
+				className="h-6 w-6 object-cover rounded-full border-1 hover:border-default-900 cursor-pointer"
 				style={{
 					opacity: isHovered ? 1 : 0.2,
 					zIndex: isHovered ? 999 : -1,
@@ -54,11 +59,13 @@ export const VenueMapMarker: React.FC<VenueMapMarkerProps> = ({
 interface HostMapMarkerProps {
 	host: Host;
 	hoveredEventVenueUid: string | null;
+	onVenueSelect: (host: Host, venue: Venue) => void;
 }
 
 export const HostMapMarker: React.FC<HostMapMarkerProps> = ({
 	host,
-	hoveredEventVenueUid
+	hoveredEventVenueUid,
+	onVenueSelect
 }) => {
 	const getMarkerIsHovered = (venue: Venue) => {
 		if (
@@ -76,9 +83,11 @@ export const HostMapMarker: React.FC<HostMapMarkerProps> = ({
 			{host.venues.map((venue) => (
 				<VenueMapMarker
 					key={venue.venue_uid}
+					host={host}
 					venue={venue}
 					image_url={host.profile_image_url}
 					isHovered={getMarkerIsHovered(venue)}
+					onSelect={() => onVenueSelect(host, venue)}
 				/>
 			))}
 		</>

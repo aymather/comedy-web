@@ -1,8 +1,27 @@
+import { EventIcon } from '@/components/icons';
 import { eventApiSlice } from '@/flux/api/event';
-import { Link } from '@heroui/link';
+import { Event } from '@/flux/api/event/event.entity';
+import { dayjs } from '@/utils/dayjs';
 import { CalendarDate, Card, CardBody, Image } from '@heroui/react';
-import dayjs from 'dayjs';
-import { ExternalLink } from 'lucide-react';
+import { ClockIcon } from 'lucide-react';
+
+const EventImageWithDefault = ({ event }: { event: Event }) => {
+	if (!event.image_url) {
+		return (
+			<div className="w-32 h-32 flex items-center justify-center bg-default-100 rounded-large border">
+				<EventIcon size={48} className="text-default-500" />
+			</div>
+		);
+	}
+
+	return (
+		<Image
+			src={event.image_url}
+			alt={event.name}
+			className="w-32 h-32 object-cover flex-shrink-0"
+		/>
+	);
+};
 
 interface EventsListProps {
 	currentDate: CalendarDate;
@@ -17,7 +36,7 @@ const EventsList: React.FC<EventsListProps> = ({
 }) => {
 	const { data: events } = eventApiSlice.useFindAllEventsQuery({
 		params: {
-			date: currentDate.toString()
+			date: dayjs(currentDate.toString()).utc()
 		}
 	});
 
@@ -37,99 +56,42 @@ const EventsList: React.FC<EventsListProps> = ({
 							}
 							onMouseLeave={() => setHoveredEventVenueUid(null)}
 						>
-							<CardBody className="flex flex-cold gap-4">
-								<div className="flex flex-row items-center gap-4">
-									{event.image_url && (
-										<Image
-											src={event.image_url}
-											alt={event.name}
-											className="w-32 h-32 object-cover flex-shrink-0"
-										/>
+							<CardBody className="flex flex-row gap-4 w-full">
+								<div className="flex flex-col items-center gap-4">
+									<EventImageWithDefault event={event} />
+									{event.start_time && (
+										<div className="flex text-default-500 items-center gap-2">
+											<ClockIcon size={14} />
+											<p className="text-sm text-center text-default-500">
+												{dayjs(event.start_time).format(
+													'h:mma'
+												)}
+											</p>
+										</div>
 									)}
-									<h3 className="font-semibold text-lg flex-1">
+								</div>
+								<div className="flex flex-col flex-1 justify-center">
+									<h3 className="font-semibold text-lg">
 										{event.name}
 									</h3>
-								</div>
-								<div className="flex flex-col flex-1">
-									{event.start_time && (
-										<p className="text-sm text-center text-default-500">
-											{dayjs(event.start_time).format(
-												'h:mma'
-											)}
-										</p>
-									)}
-									<div className="text-sm text-default-600 mt-1 flex flex-col flex-wrap gap-4">
-										<span className="inline-flex items-center gap-1">
-											<strong>Host:</strong>
-											{event.venue?.host
-												?.profile_image_url && (
+									{event.venue?.host && (
+										<span className="inline-flex items-center gap-1 mt-2">
+											{event.venue.host
+												.profile_image_url && (
 												<Image
 													src={
 														event.venue.host
 															.profile_image_url
 													}
 													alt={event.venue.host.name}
-													className="h-6 w-6 object-cover rounded-full ml-1"
+													className="h-6 w-6 object-cover rounded-full"
 												/>
 											)}
-											<span>
-												{event.venue?.host?.name ||
-													'N/A'}
+											<span className="text-sm text-default-500">
+												{event.venue.host.name}
 											</span>
 										</span>
-										<span className="inline-flex items-center gap-1">
-											<strong>Venue:</strong>
-											{event.venue?.profile_image_url && (
-												<Image
-													src={
-														event.venue
-															.profile_image_url
-													}
-													alt={event.venue.name}
-													className="h-6 w-6 object-cover rounded-full ml-1"
-												/>
-											)}
-											<span>
-												{event.venue?.name || 'N/A'}
-											</span>
-										</span>
-										{event.room?.name && (
-											<span className="inline-flex items-center gap-1">
-												<strong>Room:</strong>
-												{event.room
-													.profile_image_url && (
-													<Image
-														src={
-															event.room
-																.profile_image_url
-														}
-														alt={event.room.name}
-														className="h-6 w-6 object-cover rounded-full ml-1"
-													/>
-												)}
-												<span>{event.room.name}</span>
-											</span>
-										)}
-									</div>
-								</div>
-								<div className="flex items-center justify-end gap-2">
-									{event.event_link && (
-										<Link
-											href={event.event_link}
-											target="_blank"
-											rel="noopener noreferrer"
-										>
-											<ExternalLink size={16} />
-										</Link>
 									)}
-									<Link
-										href={event.event_link || ''}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="text-primary"
-									>
-										View Details
-									</Link>
 								</div>
 							</CardBody>
 						</Card>
