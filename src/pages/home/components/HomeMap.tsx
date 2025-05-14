@@ -4,7 +4,7 @@ import { Venue } from '@/flux/api/venue';
 import { HostMapMarker } from './MapMarkers';
 
 const placeDetails = {
-	google_place_id: 'ChIJE9on3F3HwoAR9AhGJW_fL-I',
+	place_id: 'ChIJE9on3F3HwoAR9AhGJW_fL-I',
 	name: 'Los Angeles',
 	formatted_address: 'Los Angeles, CA, USA',
 	latitude: 34.0549076,

@@ -21,7 +21,7 @@ export default serviceApi.injectEndpoints({
 			}
 		>({
 			query: ({ body }) => ({
-				url: '/google-maps/autocomplete-place',
+				url: '/location/autocomplete-place',
 				method: 'POST',
 				body
 			})
@@ -33,7 +33,7 @@ export default serviceApi.injectEndpoints({
 			}
 		>({
 			query: ({ body }) => ({
-				url: '/google-maps/place-details',
+				url: '/location/place-details',
 				method: 'POST',
 				body
 			})
@@ -45,7 +45,7 @@ export default serviceApi.injectEndpoints({
 			}
 		>({
 			query: ({ body }) => ({
-				url: '/google-maps/place-polygon',
+				url: '/location/place-polygon',
 				method: 'POST',
 				body
 			})

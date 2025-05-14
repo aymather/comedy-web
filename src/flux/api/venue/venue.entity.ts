@@ -1,5 +1,6 @@
 import { NanoId } from '@/types';
 import { Host } from '../host/host.entity';
+import { Location } from '../location/location.entity';
 import { Room } from '../room';
 import { VenueImage } from '../venue-image/venue-image.entity';
 
@@ -12,4 +13,5 @@ export interface Venue {
 	readonly stage_image_url: string | null;
 	readonly place_id: string | null;
 	readonly images: VenueImage[];
+	readonly location: Location | null;
 }

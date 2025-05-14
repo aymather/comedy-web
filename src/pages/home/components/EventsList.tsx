@@ -1,6 +1,7 @@
 import { EventIcon } from '@/components/icons';
 import { eventApiSlice } from '@/flux/api/event';
 import { Event } from '@/flux/api/event/event.entity';
+import { NanoId } from '@/types';
 import { dayjs } from '@/utils/dayjs';
 import { CalendarDate, Card, CardBody, Image } from '@heroui/react';
 import { ClockIcon } from 'lucide-react';
@@ -27,12 +28,14 @@ interface EventsListProps {
 	currentDate: CalendarDate;
 	hoveredEventVenueUid: string | null;
 	setHoveredEventVenueUid: (uid: string | null) => void;
+	onEventSelect: (eventUid: NanoId) => void;
 }
 
 const EventsList: React.FC<EventsListProps> = ({
 	currentDate,
 	hoveredEventVenueUid,
-	setHoveredEventVenueUid
+	setHoveredEventVenueUid,
+	onEventSelect
 }) => {
 	const { data: events } = eventApiSlice.useFindAllEventsQuery({
 		params: {
@@ -56,7 +59,10 @@ const EventsList: React.FC<EventsListProps> = ({
 							}
 							onMouseLeave={() => setHoveredEventVenueUid(null)}
 						>
-							<CardBody className="flex flex-row gap-4 w-full">
+							<CardBody
+								className="flex flex-row gap-4 w-full"
+								onClick={() => onEventSelect(event.event_uid)}
+							>
 								<div className="flex flex-col items-center gap-4">
 									<EventImageWithDefault event={event} />
 									{event.start_time && (

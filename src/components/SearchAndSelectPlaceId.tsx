@@ -1,4 +1,4 @@
-import { googleMapsApiSlice } from '@/flux/api/google-maps';
+import { locationApiSlice } from '@/flux/api/location';
 import {
 	Button,
 	Input,
@@ -35,7 +35,7 @@ const SearchAndSelectPlaceId = ({
 		data: results = [],
 		isFetching,
 		error
-	} = googleMapsApiSlice.useAutocompletePlaceQuery(
+	} = locationApiSlice.useAutocompletePlaceQuery(
 		search.trim()
 			? { body: { searchText: search } }
 			: { body: { searchText: '' } },

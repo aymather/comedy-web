@@ -1,5 +1,4 @@
 import { eventApiSlice } from '@/flux/api/event';
-import { googleMapsApiSlice } from '@/flux/api/google-maps';
 import { venueApiSlice } from '@/flux/api/venue';
 import { NanoId } from '@/types';
 import {
@@ -62,18 +61,6 @@ const SelectVenueDrawer = ({
 		}
 	);
 
-	const { data: locationDetails } =
-		googleMapsApiSlice.useGetLocationDetailsByPlaceIdQuery(
-			{
-				body: {
-					place_id: venue?.place_id || ''
-				}
-			},
-			{
-				skip: !venue?.place_id
-			}
-		);
-
 	const [activeIndex, setActiveIndex] = useState(0);
 
 	const images = [
@@ -87,7 +74,7 @@ const SelectVenueDrawer = ({
 	return (
 		<Drawer
 			hideCloseButton
-			backdrop="blur"
+			backdrop="opaque"
 			classNames={{
 				base: 'data-[placement=right]:sm:m-2 data-[placement=left]:sm:m-2 rounded-medium'
 			}}
@@ -184,7 +171,6 @@ const SelectVenueDrawer = ({
 											className="w-full max-w-full"
 										>
 											<img
-												// isBlurred
 												alt={venue.name}
 												className="w-full h-full object-cover"
 												height={300}
@@ -194,7 +180,7 @@ const SelectVenueDrawer = ({
 									))}
 								</Swiper>
 								{/* Slide indicator */}
-								<div className="absolute bottom-2 right-4 bg-gray-400/20 text-white text-xs rounded-full px-2 py-1 z-10 backdrop-blur-sm">
+								<div className="absolute bottom-2 right-4 bg-black/50 text-white text-xs rounded-md px-2 py-1 z-10 backdrop-blur-sm">
 									{activeIndex + 1} / {images.length}
 								</div>
 							</div>
@@ -202,7 +188,7 @@ const SelectVenueDrawer = ({
 								<h1 className="text-2xl font-bold leading-7">
 									{venue.name}
 								</h1>
-								{locationDetails && (
+								{venue.location && (
 									<div className="flex items-center gap-2">
 										<Image
 											src={
@@ -304,7 +290,7 @@ const SelectVenueDrawer = ({
 									</svg>
 								</div>
 								<div className="flex flex-col gap-0.5">
-									{locationDetails && (
+									{venue.location && (
 										<Link
 											isExternal
 											showAnchorIcon
@@ -325,15 +311,15 @@ const SelectVenueDrawer = ({
 												</svg>
 											}
 											className="group gap-x-0.5 text-medium text-foreground font-medium"
-											href={`https://www.google.com/maps/place/${encodeURIComponent(locationDetails.formatted_address)}`}
+											href={`https://www.google.com/maps/place/${encodeURIComponent(venue.location.formatted_address || '')}`}
 											rel="noreferrer noopener"
 										>
-											{locationDetails.formatted_address}
+											{venue.location.formatted_address}
 										</Link>
 									)}
-									{locationDetails?.address_components && (
+									{venue.location?.address_components && (
 										<p className="text-small text-default-500">
-											{locationDetails.address_components
+											{venue.location.address_components
 												.filter(
 													(component) =>
 														component.types.includes(

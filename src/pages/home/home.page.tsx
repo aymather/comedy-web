@@ -5,6 +5,7 @@ import { useState } from 'react';
 import EventDatePickerControl from './components/EventDatePickerControl';
 import EventsList from './components/EventsList';
 import HomeMap from './components/HomeMap';
+import SelectEventDrawer from './components/SelectEventDrawer';
 import SelectVenueDrawer from './components/SelectVenueDrawer';
 
 const HomePage = () => {
@@ -16,6 +17,9 @@ const HomePage = () => {
 		host_uid: NanoId;
 		venue_uid: NanoId;
 	} | null>(null);
+	const [selectedEventUid, setSelectedEventUid] = useState<NanoId | null>(
+		null
+	);
 
 	return (
 		<DefaultLayout>
@@ -42,6 +46,7 @@ const HomePage = () => {
 						currentDate={selectedDate}
 						hoveredEventVenueUid={hoveredEventVenueUid}
 						setHoveredEventVenueUid={setHoveredEventVenueUid}
+						onEventSelect={setSelectedEventUid}
 					/>
 				</div>
 			</section>
@@ -49,6 +54,11 @@ const HomePage = () => {
 				selectedVenue={selectedVenue}
 				isOpen={selectedVenue !== null}
 				onClose={() => setSelectedVenue(null)}
+			/>
+			<SelectEventDrawer
+				eventUid={selectedEventUid}
+				isOpen={selectedEventUid !== null}
+				onClose={() => setSelectedEventUid(null)}
 			/>
 		</DefaultLayout>
 	);

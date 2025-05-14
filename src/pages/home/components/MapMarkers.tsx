@@ -1,4 +1,3 @@
-import { googleMapsApiSlice } from '@/flux/api/google-maps';
 import { Host } from '@/flux/api/host';
 import { Venue } from '@/flux/api/venue';
 import { Image } from '@heroui/react';
@@ -19,24 +18,13 @@ export const VenueMapMarker: React.FC<VenueMapMarkerProps> = ({
 	isHovered,
 	onSelect
 }) => {
-	const { data } = googleMapsApiSlice.useGetLocationDetailsByPlaceIdQuery(
-		{
-			body: {
-				place_id: venue.place_id || ''
-			}
-		},
-		{
-			skip: !venue.place_id
-		}
-	);
-
-	if (!data) return null;
+	if (!venue.location) return null;
 
 	return (
 		<AdvancedMarker
 			position={{
-				lat: data.latitude,
-				lng: data.longitude
+				lat: Number(venue.location.latitude),
+				lng: Number(venue.location.longitude)
 			}}
 			onClick={() => onSelect(host, venue)}
 		>
