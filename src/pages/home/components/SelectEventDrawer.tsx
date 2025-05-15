@@ -1,6 +1,6 @@
 import { Alcohol, Food, PhoneFreeZone, TwoDrinks } from '@/components/icons';
+import Map from '@/components/Map';
 import { eventApiSlice } from '@/flux/api/event';
-import { NanoId } from '@/types';
 import {
 	Button,
 	Drawer,
@@ -12,29 +12,31 @@ import {
 	Link,
 	Tooltip
 } from '@heroui/react';
+import { AdvancedMarker } from '@vis.gl/react-google-maps';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { SelectedEvent } from '../home.page';
 
 interface SelectEventDrawerProps {
-	eventUid: NanoId | null;
+	selectedEvent: SelectedEvent | null;
 	isOpen: boolean;
 	onClose: () => void;
 }
 
 const SelectEventDrawer = ({
-	eventUid,
+	selectedEvent,
 	isOpen,
 	onClose
 }: SelectEventDrawerProps) => {
 	const { data: event } = eventApiSlice.useFindOneEventQuery(
 		{
 			params: {
-				event_uid: eventUid || ''
+				event_uid: selectedEvent?.event_uid || ''
 			}
 		},
 		{
-			skip: !eventUid
+			skip: !selectedEvent
 		}
 	);
 
@@ -321,6 +323,55 @@ const SelectEventDrawer = ({
 											<Food />
 											<span>Serves Food</span>
 										</div>
+									)}
+								</div>
+								{/** Mini Map */}
+								<div className="w-full h-48 border-1 border-default-200/50 rounded-medium overflow-hidden">
+									{event.venue?.location && (
+										<Map
+											defaultCenter={{
+												lat: Number(
+													event.venue.location
+														.latitude
+												),
+												lng: Number(
+													event.venue.location
+														.longitude
+												)
+											}}
+											defaultZoom={10}
+											gestureHandling="greedy"
+											disableDefaultUI={true}
+											minZoom={10}
+											style={{
+												width: '100%',
+												height: '100%',
+												overflow: 'hidden'
+											}}
+										>
+											<AdvancedMarker
+												position={{
+													lat: Number(
+														event.venue.location
+															.latitude
+													),
+													lng: Number(
+														event.venue.location
+															.longitude
+													)
+												}}
+											>
+												<Image
+													src={
+														event.venue.host
+															?.profile_image_url ||
+														''
+													}
+													alt={event.venue?.name}
+													className="h-6 w-6 object-cover rounded-full border-1 border-transparent cursor-pointer transition-all"
+												/>
+											</AdvancedMarker>
+										</Map>
 									)}
 								</div>
 								{/* Hosted By Section */}

@@ -6,20 +6,40 @@ import EventDatePickerControl from './components/EventDatePickerControl';
 import EventsList from './components/EventsList';
 import HomeMap from './components/HomeMap';
 import SelectEventDrawer from './components/SelectEventDrawer';
-import SelectVenueDrawer from './components/SelectVenueDrawer';
+
+export type SelectedVenue = {
+	host_uid: NanoId;
+	venue_uid: NanoId;
+	room_uid?: NanoId;
+};
+
+export type HoveredVenue = {
+	host_uid: NanoId;
+	venue_uid: NanoId;
+};
+
+export type HoveredEvent = {
+	venue_uid: NanoId;
+	event_uid: NanoId;
+};
+
+export type SelectedEvent = {
+	venue_uid: NanoId;
+	event_uid: NanoId;
+};
 
 const HomePage = () => {
 	const [selectedDate, setSelectedDate] = useState(today(getLocalTimeZone()));
-	const [hoveredEventVenueUid, setHoveredEventVenueUid] = useState<
-		string | null
-	>(null);
-	const [selectedVenue, setSelectedVenue] = useState<{
-		host_uid: NanoId;
-		venue_uid: NanoId;
-	} | null>(null);
-	const [selectedEventUid, setSelectedEventUid] = useState<NanoId | null>(
+	const [hoveredEvent, setHoveredEvent] = useState<HoveredEvent | null>(null);
+	const [hoveredVenue, setHoveredVenue] = useState<HoveredVenue | null>(null);
+	const [selectedVenue, setSelectedVenue] = useState<SelectedVenue | null>(
 		null
 	);
+	const [selectedEvent, setSelectedEvent] = useState<SelectedEvent | null>(
+		null
+	);
+
+	const closeSelectedVenue = () => setSelectedVenue(null);
 
 	return (
 		<DefaultLayout>
@@ -27,13 +47,12 @@ const HomePage = () => {
 				{/* Left: Map and Date Picker (static) */}
 				<div className="flex flex-col gap-8 flex-shrink-0">
 					<HomeMap
-						hoveredEventVenueUid={hoveredEventVenueUid}
-						onVenueSelect={(host, venue) =>
-							setSelectedVenue({
-								host_uid: host.host_uid,
-								venue_uid: venue.venue_uid
-							})
-						}
+						hoveredEvent={hoveredEvent}
+						selectedVenue={selectedVenue}
+						setSelectedVenue={setSelectedVenue}
+						hoveredVenue={hoveredVenue}
+						setHoveredVenue={setHoveredVenue}
+						selectedEvent={selectedEvent}
 					/>
 					<EventDatePickerControl
 						selectedDate={selectedDate}
@@ -44,21 +63,18 @@ const HomePage = () => {
 				<div className="flex-1 min-w-0 overflow-y-auto h-[calc(100vh-80px)] px-12">
 					<EventsList
 						currentDate={selectedDate}
-						hoveredEventVenueUid={hoveredEventVenueUid}
-						setHoveredEventVenueUid={setHoveredEventVenueUid}
-						onEventSelect={setSelectedEventUid}
+						setSelectedEvent={setSelectedEvent}
+						selectedVenue={selectedVenue}
+						closeSelectedVenue={closeSelectedVenue}
+						setHoveredEvent={setHoveredEvent}
+						setSelectedVenue={setSelectedVenue}
 					/>
 				</div>
 			</section>
-			<SelectVenueDrawer
-				selectedVenue={selectedVenue}
-				isOpen={selectedVenue !== null}
-				onClose={() => setSelectedVenue(null)}
-			/>
 			<SelectEventDrawer
-				eventUid={selectedEventUid}
-				isOpen={selectedEventUid !== null}
-				onClose={() => setSelectedEventUid(null)}
+				selectedEvent={selectedEvent}
+				isOpen={selectedEvent !== null}
+				onClose={() => setSelectedEvent(null)}
 			/>
 		</DefaultLayout>
 	);

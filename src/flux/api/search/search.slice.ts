@@ -3,6 +3,10 @@ import {
 	SearchArtistsQueryDto,
 	SearchArtistsResponseDto
 } from './dto/search-artists.dto';
+import {
+	SearchVenuesQueryDto,
+	SearchVenuesResponseDto
+} from './dto/search-venues.dto';
 
 export default serviceApi.injectEndpoints({
 	endpoints: (builder) => ({
@@ -18,6 +22,19 @@ export default serviceApi.injectEndpoints({
 				params: query
 			}),
 			providesTags: ['SearchArtists']
+		}),
+		searchVenues: builder.query<
+			SearchVenuesResponseDto,
+			{
+				query: SearchVenuesQueryDto;
+			}
+		>({
+			query: ({ query }) => ({
+				url: '/search/venues',
+				method: 'GET',
+				params: query
+			}),
+			providesTags: ['SearchVenues']
 		})
 	})
 });

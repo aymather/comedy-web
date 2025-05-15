@@ -16,7 +16,8 @@ export const serviceApi = createApi({
 		'Event',
 		'Revision',
 		'Artist',
-		'SearchArtists'
+		'SearchArtists',
+		'SearchVenues'
 	],
 	endpoints: () => ({})
 });

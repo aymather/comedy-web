@@ -6,3 +6,16 @@
     overflow: auto !important;
     max-height: auto !important;
 }
+
+.gmnoprint {
+    display: none;
+}
+
+.gm-style-cc {
+    display: none;
+}
+
+[aria-label="Open this area in Google Maps (opens a new window)"] {
+    display: none !important;
+}
+
