@@ -82,7 +82,7 @@ const SearchModal: React.FC<SearchModalProps> = ({
 						<ModalHeader>
 							<Input
 								ref={inputRef}
-								className="w-full rounded-lg bg-[#232336] text-base placeholder:text-[#6c6c81] outline-none focus:ring-2 focus:ring-[#2563eb]"
+								className="w-full rounded-lg text-base placeholder:text-[#6c6c81] outline-none focus:ring-2 focus:ring-[#2563eb]"
 								placeholder="Search venues"
 								value={query}
 								onChange={(e) => setQuery(e.target.value)}
@@ -107,7 +107,7 @@ const SearchModal: React.FC<SearchModalProps> = ({
 										className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-colors select-none text-left focus:outline-none focus:ring-2 focus:ring-[#2563eb] group ${
 											i === selected
 												? 'bg-[#2563eb] text-white'
-												: 'text-[#a8b0d3] hover:bg-[#232336]'
+												: 'text-[#a8b0d3] hover:bg-[#2563eb1A] dark:hover:bg-[#232336]'
 										} `}
 										onMouseEnter={() => setSelected(i)}
 										onClick={() => {
@@ -117,7 +117,11 @@ const SearchModal: React.FC<SearchModalProps> = ({
 									>
 										<MapPin
 											size={20}
-											className="text-gray-100/20"
+											className={
+												i === selected
+													? 'text-white'
+													: 'text-default-500'
+											}
 										/>
 										<span className="flex-1">
 											{item.name}

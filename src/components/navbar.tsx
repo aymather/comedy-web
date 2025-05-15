@@ -20,45 +20,27 @@ import {
 } from '@/components/icons';
 import { ThemeSwitch } from '@/components/theme-switch';
 import { siteConfig } from '@/config/site';
-import { useCallback, useEffect, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import SearchModal from './SearchModal';
 
 export const Navbar = () => {
-	const { isOpen, onOpen, onOpenChange } = useDisclosure();
-	const [isSearchOpen, setIsSearchOpen] = useState(false);
+	const {
+		isOpen: isSearchOpen,
+		onOpen: onOpenSearch,
+		onClose: onCloseSearch
+	} = useDisclosure();
 
-	// Cmd+K and / shortcut
-	const handleKeyDown = useCallback(
-		(e: KeyboardEvent) => {
-			const isInput =
-				['INPUT', 'TEXTAREA'].includes(
-					(e.target as HTMLElement)?.tagName
-				) || (e.target as HTMLElement)?.isContentEditable;
-			if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-				e.preventDefault();
-				if (!isSearchOpen) setIsSearchOpen(true);
-			} else if (e.key === '/' && !isInput && !isSearchOpen) {
-				e.preventDefault();
-				setIsSearchOpen(true);
-			} else if (e.key === 'Escape' && isSearchOpen) {
-				setIsSearchOpen(false);
-			}
-		},
-		[isSearchOpen]
-	);
-
-	useEffect(() => {
-		window.addEventListener('keydown', handleKeyDown);
-		return () => window.removeEventListener('keydown', handleKeyDown);
-	}, [handleKeyDown]);
+	useHotkeys('meta+k', (e) => {
+		e.preventDefault();
+		onOpenSearch();
+	});
 
 	const searchInput = (
 		<button
 			type="button"
 			aria-label="Search"
 			className="w-full flex items-center bg-default-100 rounded-lg px-3 py-2 text-sm text-left text-default-700 focus:outline-none focus:ring-2 focus:ring-primary/50 gap-2"
-			onClick={() => setIsSearchOpen(true)}
-			onFocus={() => setIsSearchOpen(true)}
+			onClick={onOpenSearch}
 		>
 			<SearchIcon className="text-base text-default-400 flex-shrink-0" />
 			<span className="flex-1 text-sm text-default-700 opacity-70">
@@ -87,22 +69,6 @@ export const Navbar = () => {
 							<p className="font-bold text-inherit">Comedy</p>
 						</Link>
 					</NavbarBrand>
-					{/* <div className="hidden lg:flex gap-4 justify-start ml-2">
-						{siteConfig.navItems.map((item) => (
-							<NavbarItem key={item.href}>
-								<Link
-									className={clsx(
-										linkStyles({ color: 'foreground' }),
-										'data-[active=true]:text-primary data-[active=true]:font-medium'
-									)}
-									color="foreground"
-									href={item.href}
-								>
-									{item.label}
-								</Link>
-							</NavbarItem>
-						))}
-					</div> */}
 				</NavbarContent>
 
 				<NavbarContent
@@ -165,10 +131,7 @@ export const Navbar = () => {
 					</div>
 				</NavbarMenu>
 			</HeroUINavbar>
-			<SearchModal
-				isOpen={isSearchOpen}
-				onClose={() => setIsSearchOpen(false)}
-			/>
+			<SearchModal isOpen={isSearchOpen} onClose={onCloseSearch} />
 		</>
 	);
 };
