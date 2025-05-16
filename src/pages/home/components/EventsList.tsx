@@ -98,7 +98,7 @@ const EventsList: React.FC<EventsListProps> = ({
 		: [];
 
 	return (
-		<div className="flex flex-col max-w-2xl">
+		<div className="flex flex-col p-8">
 			<AnimatePresence>
 				{selectedVenue && venue && (
 					<motion.div
@@ -249,9 +249,6 @@ const EventsList: React.FC<EventsListProps> = ({
 			</AnimatePresence>
 			{events && events.length > 0 ? (
 				<div className="flex flex-col gap-4 w-full">
-					<span className="text-sm text-default-500">
-						Upcoming Events
-					</span>
 					{events.map((event) => (
 						<Card
 							key={event.event_uid}

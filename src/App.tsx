@@ -6,6 +6,7 @@ import { Route, Routes } from 'react-router-dom';
 import DashboardPage from './pages/dashboard/dashboard.page';
 import HomePage from './pages/home/home.page';
 import ReviseEventsPage from './pages/revise-events/revise-events.page';
+import TestPage from './pages/test/test.page';
 
 function App() {
 	return (
@@ -28,6 +29,7 @@ function App() {
 			{import.meta.env.VITE_IS_DEV && (
 				<>
 					<Route element={<DashboardPage />} path="/dashboard" />
+					<Route element={<TestPage />} path="/test" />
 					<Route
 						element={<ReviseEventsPage />}
 						path="/revise-events"

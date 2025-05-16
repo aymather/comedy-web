@@ -1,11 +1,15 @@
 import DefaultLayout from '@/layouts/default';
 import { NanoId } from '@/types';
+import { Button } from '@heroui/react';
 import { getLocalTimeZone, today } from '@internationalized/date';
+import { Map } from 'lucide-react';
 import { useState } from 'react';
 import EventDatePickerControl from './components/EventDatePickerControl';
 import EventsList from './components/EventsList';
 import HomeMap from './components/HomeMap';
 import SelectEventDrawer from './components/SelectEventDrawer';
+
+type PageView = 'list' | 'map';
 
 export type SelectedVenue = {
 	host_uid: NanoId;
@@ -29,6 +33,7 @@ export type SelectedEvent = {
 };
 
 const HomePage = () => {
+	const [view, setView] = useState<PageView>('list');
 	const [selectedDate, setSelectedDate] = useState(today(getLocalTimeZone()));
 	const [hoveredEvent, setHoveredEvent] = useState<HoveredEvent | null>(null);
 	const [hoveredVenue, setHoveredVenue] = useState<HoveredVenue | null>(null);
@@ -43,34 +48,59 @@ const HomePage = () => {
 
 	return (
 		<DefaultLayout>
-			<section className="container flex flex-row justify-center gap-4 h-[calc(100vh-80px)] max-h-[900px]">
-				{/* Left: Map and Date Picker (static) */}
-				<div className="flex flex-col gap-8 flex-shrink-0">
-					<HomeMap
-						hoveredEvent={hoveredEvent}
-						selectedVenue={selectedVenue}
-						setSelectedVenue={setSelectedVenue}
-						hoveredVenue={hoveredVenue}
-						setHoveredVenue={setHoveredVenue}
-						selectedEvent={selectedEvent}
-					/>
+			<div className="flex flex-col h-full overflow-hidden">
+				{/* <div className="py-6">Potential Header Content</div> */}
+				<div className="flex flex-1 flex-col overflow-hidden h-full relative">
+					<div className="flex flex-row h-full">
+						<div
+							className={`hidden md:flex flex-1 ${view === 'map' ? '!flex' : ''}`}
+						>
+							<HomeMap
+								hoveredEvent={hoveredEvent}
+								selectedVenue={selectedVenue}
+								setSelectedVenue={setSelectedVenue}
+								hoveredVenue={hoveredVenue}
+								setHoveredVenue={setHoveredVenue}
+								selectedEvent={selectedEvent}
+							/>
+						</div>
+						<div
+							className={`flex flex-1 flex-col overflow-y-auto pb-16 md:pb-0 ${view === 'map' ? 'hidden md:flex' : ''}`}
+						>
+							<EventsList
+								currentDate={selectedDate}
+								setSelectedEvent={setSelectedEvent}
+								selectedVenue={selectedVenue}
+								closeSelectedVenue={closeSelectedVenue}
+								setHoveredEvent={setHoveredEvent}
+								setSelectedVenue={setSelectedVenue}
+							/>
+						</div>
+					</div>
+					<div className="absolute bottom-0 left-0 right-0 flex justify-center mb-4 md:hidden z-20">
+						<Button
+							startContent={<Map />}
+							variant="shadow"
+							color="default"
+							onPress={() => {
+								if (view === 'list') {
+									setView('map');
+								} else {
+									setView('list');
+								}
+							}}
+						>
+							View {view === 'list' ? 'Map' : 'List'}
+						</Button>
+					</div>
+				</div>
+				<div className="py-6 md:py-12 border-t">
 					<EventDatePickerControl
 						selectedDate={selectedDate}
 						setSelectedDate={setSelectedDate}
 					/>
 				</div>
-				{/* Right: Events List (scrollable) */}
-				<div className="flex-1 min-w-0 overflow-y-auto h-[calc(100vh-80px)] px-12">
-					<EventsList
-						currentDate={selectedDate}
-						setSelectedEvent={setSelectedEvent}
-						selectedVenue={selectedVenue}
-						closeSelectedVenue={closeSelectedVenue}
-						setHoveredEvent={setHoveredEvent}
-						setSelectedVenue={setSelectedVenue}
-					/>
-				</div>
-			</section>
+			</div>
 			<SelectEventDrawer
 				selectedEvent={selectedEvent}
 				isOpen={selectedEvent !== null}

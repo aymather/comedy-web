@@ -12,12 +12,7 @@ import {
 } from '@heroui/navbar';
 import { useDisclosure } from '@heroui/react';
 
-import {
-	GithubIcon,
-	HeartFilledIcon,
-	Logo,
-	SearchIcon
-} from '@/components/icons';
+import { HeartFilledIcon, Logo, SearchIcon } from '@/components/icons';
 import { ThemeSwitch } from '@/components/theme-switch';
 import { siteConfig } from '@/config/site';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -39,7 +34,7 @@ export const Navbar = () => {
 		<button
 			type="button"
 			aria-label="Search"
-			className="w-full flex items-center bg-default-100 rounded-lg px-3 py-2 text-sm text-left text-default-700 focus:outline-none focus:ring-2 focus:ring-primary/50 gap-2"
+			className="w-full border-1 border-default-200 shadow-sm flex items-center bg-default-100 rounded-lg px-3 py-2 text-sm text-left text-default-700 focus:outline-none focus:ring-2 focus:ring-primary/50 gap-2"
 			onClick={onOpenSearch}
 		>
 			<SearchIcon className="text-base text-default-400 flex-shrink-0" />
@@ -54,9 +49,9 @@ export const Navbar = () => {
 
 	return (
 		<>
-			<HeroUINavbar maxWidth="xl" position="sticky">
+			<HeroUINavbar maxWidth="xl">
 				<NavbarContent
-					className="basis-1/5 sm:basis-full"
+					className="basis-1/5 sm:basis-full !grow-0"
 					justify="start"
 				>
 					<NavbarBrand className="gap-3 max-w-fit">
@@ -66,7 +61,9 @@ export const Navbar = () => {
 							href="/"
 						>
 							<Logo />
-							<p className="font-bold text-inherit">Comedy</p>
+							<p className="hidden md:block font-bold text-inherit">
+								Comedy
+							</p>
 						</Link>
 					</NavbarBrand>
 				</NavbarContent>
@@ -98,9 +95,7 @@ export const Navbar = () => {
 				</NavbarContent>
 
 				<NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
-					<Link isExternal href={siteConfig.links.github}>
-						<GithubIcon className="text-default-500" />
-					</Link>
+					{searchInput}
 					<ThemeSwitch />
 					<NavbarMenuToggle />
 				</NavbarContent>

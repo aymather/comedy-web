@@ -89,7 +89,7 @@ const SearchModal: React.FC<SearchModalProps> = ({
 								startContent={
 									<SearchIcon className="text-[#6c6c81] text-lg" />
 								}
-								endContent={<Kbd key={'esc'}>esc</Kbd>}
+								endContent={<Kbd key="esc">esc</Kbd>}
 							/>
 						</ModalHeader>
 						<ModalBody>

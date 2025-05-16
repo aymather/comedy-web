@@ -149,6 +149,13 @@ const HostPage = () => {
 				body
 			}).unwrap();
 			onOpenChange();
+
+			addToast({
+				title: 'Success',
+				description: 'Host updated successfully',
+				variant: 'solid',
+				color: 'success'
+			});
 		} catch (error) {
 			console.error(error);
 			addToast({
