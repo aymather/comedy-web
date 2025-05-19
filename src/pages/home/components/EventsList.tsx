@@ -1,41 +1,14 @@
-import { EventIcon } from '@/components/icons';
 import { eventApiSlice } from '@/flux/api/event';
 import { Event } from '@/flux/api/event/event.entity';
 import { venueApiSlice } from '@/flux/api/venue';
 import { NanoId } from '@/types';
 import { dayjs } from '@/utils/dayjs';
-import {
-	Avatar,
-	Button,
-	CalendarDate,
-	Card,
-	CardBody,
-	Chip,
-	Image
-} from '@heroui/react';
+import { Avatar, Button, CalendarDate, Card, Chip, Image } from '@heroui/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ClockIcon, XIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
+import { ClockIcon, XIcon } from 'lucide-react';
+import React from 'react';
 import { HoveredEvent, SelectedEvent, SelectedVenue } from '../home.page';
-
-const EventImageWithDefault = ({ event }: { event: Event }) => {
-	if (!event.image_url) {
-		return (
-			<div className="w-32 h-32 flex items-center justify-center bg-default-100 rounded-large border">
-				<EventIcon size={48} className="text-default-500" />
-			</div>
-		);
-	}
-
-	return (
-		<Image
-			src={event.image_url}
-			alt={event.name}
-			className="w-32 h-32 object-cover flex-shrink-0"
-		/>
-	);
-};
+import ImagesSwiper from './ImagesSwiper';
 
 interface EventsListProps {
 	currentDate: CalendarDate;
@@ -50,6 +23,96 @@ interface EventsListProps {
 	closeSelectedVenue: () => void;
 }
 
+const EventCard: React.FC<{
+	event: Event;
+	setSelectedEvent: (event: SelectedEvent | null) => void;
+}> = ({ event, setSelectedEvent }) => {
+	return (
+		<div
+			role="button"
+			tabIndex={0}
+			onClick={() =>
+				setSelectedEvent({
+					venue_uid: event.venue.venue_uid,
+					event_uid: event.event_uid
+				})
+			}
+			onKeyDown={(e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					setSelectedEvent({
+						venue_uid: event.venue.venue_uid,
+						event_uid: event.event_uid
+					});
+				}
+			}}
+			className="cursor-pointer"
+		>
+			<Card
+				key={event.event_uid}
+				className="flex md:flex-row md:min-h-[200px] shadow-md bg-white dark:bg-neutral-900 cursor-pointer border border-default-100 dark:border-neutral-800 items-stretch"
+			>
+				{/* Swiper carousel for event images */}
+				<div className="w-full h-[200px] md:h-auto md:w-1/3 flex">
+					<ImagesSwiper
+						images={[1, 2, 3].map((i) => event.image_url || '')}
+					/>
+				</div>
+				<div className="w-full md:w-2/3 p-4 flex flex-col gap-2 justify-center">
+					{/* Event Name */}
+					<div className="text-center md:text-left">
+						<h3 className="font-semibold text-lg md:text-2xl text-gray-900 dark:text-white">
+							{event.name}
+						</h3>
+					</div>
+					{/* Info Row */}
+					<div className="flex flex-row w-full items-center justify-between">
+						{/* Host Avatar */}
+						<div className="flex flex-col gap-4">
+							<div className="flex items-center gap-2">
+								<Avatar
+									src={
+										event.venue?.host?.profile_image_url ||
+										''
+									}
+									name={event.venue?.host?.name || ''}
+									size="sm"
+								/>
+								<span className="hidden md:block text-default-500 dark:text-neutral-400 text-sm">
+									{event.venue?.host?.name || ''}
+								</span>
+							</div>
+							{event.room && (
+								<div className="hidden md:flex items-center gap-2">
+									<Avatar
+										src={
+											event.room?.profile_image_url || ''
+										}
+										name={event.room.name || ''}
+										size="sm"
+									/>
+									<span className="hidden md:block text-default-500 dark:text-neutral-400 text-sm">
+										{event.room.name || ''}
+									</span>
+								</div>
+							)}
+						</div>
+						{/* Event Time */}
+						<div className="flex items-center gap-1 text-default-500 dark:text-neutral-400 text-sm">
+							<ClockIcon size={16} className="hidden md:block" />
+							<span>
+								{event.start_time
+									? dayjs(event.start_time).format('h:mma')
+									: ''}
+							</span>
+						</div>
+					</div>
+				</div>
+			</Card>
+		</div>
+	);
+};
+
 const EventsList: React.FC<EventsListProps> = ({
 	currentDate,
 	setSelectedEvent,
@@ -58,16 +121,6 @@ const EventsList: React.FC<EventsListProps> = ({
 	setSelectedVenue,
 	closeSelectedVenue
 }) => {
-	const [activeIndex, setActiveIndex] = useState(0);
-	const [swiperInstance, setSwiperInstance] = useState<SwiperClass | null>();
-	const swiperRef = useRef<any>(null);
-
-	useEffect(() => {
-		if (selectedVenue === null) {
-			setActiveIndex(0);
-		}
-	}, [selectedVenue]);
-
 	const { data: events } = eventApiSlice.useFindAllEventsQuery({
 		params: {
 			host_uid: selectedVenue?.host_uid,
@@ -91,14 +144,13 @@ const EventsList: React.FC<EventsListProps> = ({
 
 	const images = venue
 		? [
-				venue.profile_image_url,
-				...(venue.rooms.map((room) => room.profile_image_url) || []),
-				...(venue.images.map((image) => image.url) || [])
+				venue.profile_image_url || '',
+				...(venue.images.map((image) => image.url || '') || [])
 			].filter(Boolean)
 		: [];
 
 	return (
-		<div className="flex flex-col p-8">
+		<div className="flex flex-col p-8 bg-white dark:bg-neutral-950">
 			<AnimatePresence>
 				{selectedVenue && venue && (
 					<motion.div
@@ -109,71 +161,17 @@ const EventsList: React.FC<EventsListProps> = ({
 						transition={{ duration: 0.3, ease: 'easeInOut' }}
 					>
 						{/* Swiper header image */}
-						<div className="flex w-full justify-center items-center relative h-[30vh] border-1 border-default-100 rounded-2xl overflow-hidden">
-							{/* Swiper navigation arrows */}
-							<button
-								type="button"
-								className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
-								aria-label="Previous image"
-								onClick={() => swiperInstance?.slidePrev()}
-							>
-								<ChevronLeft size={24} />
-							</button>
-							<button
-								type="button"
-								className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
-								aria-label="Next image"
-								onClick={() => swiperInstance?.slideNext()}
-							>
-								<ChevronRight size={24} />
-							</button>
-							<Swiper
-								spaceBetween={1}
-								slidesPerView={1}
-								onSlideChange={(swiper) =>
-									setActiveIndex(swiper.realIndex)
-								}
-								className="w-full h-full"
-								onSwiper={setSwiperInstance}
-								ref={swiperRef}
-							>
-								{images.map((i) => (
-									<SwiperSlide
-										key={i}
-										className="w-full h-full max-w-full relative overflow-hidden"
-									>
-										{/* Blurred background image */}
-										<img
-											alt=""
-											className="absolute inset-0 w-full h-full object-cover blur-xl scale-110"
-											src={i || ''}
-										/>
-										{/* Main image */}
-										<div className="relative w-full h-full flex items-center justify-center">
-											<img
-												alt={venue.name}
-												className="max-w-full max-h-full h-full w-full object-contain mx-auto my-auto"
-												src={i || ''}
-											/>
-										</div>
-									</SwiperSlide>
-								))}
-							</Swiper>
-							{/* Slide indicator */}
-							<div className="absolute bottom-2 right-4 bg-black/50 text-white text-sm rounded-md px-2 py-1 z-10 backdrop-blur-sm">
-								{activeIndex + 1} / {images.length}
-							</div>
-						</div>
+						<ImagesSwiper images={images} />
 						<div className="flex items-center justify-between w-full">
 							<div className="flex items-center gap-2">
 								{venue.host?.profile_image_url && (
 									<Image
 										src={venue.host.profile_image_url}
 										alt={venue.host.name}
-										className="w-10 h-10 rounded-full"
+										className="w-10 h-10 rounded-full border border-default-200 dark:border-neutral-700"
 									/>
 								)}
-								<span className="text-2xl font-bold leading-7">
+								<span className="text-2xl font-bold leading-7 text-gray-900 dark:text-white">
 									{venue.name}
 								</span>
 							</div>
@@ -181,7 +179,7 @@ const EventsList: React.FC<EventsListProps> = ({
 								isIconOnly
 								aria-label="Close venue"
 								variant="flat"
-								className="rounded-full"
+								className="rounded-full text-gray-900 dark:text-white"
 								onPress={closeSelectedVenue}
 							>
 								<XIcon size={24} />
@@ -197,7 +195,7 @@ const EventsList: React.FC<EventsListProps> = ({
 									return (
 										<Chip
 											key={room.room_uid}
-											className="cursor-pointer hover:bg-default-100"
+											className="cursor-pointer hover:bg-default-100 dark:hover:bg-neutral-800"
 											avatar={
 												<Avatar
 													name={room.name}
@@ -250,109 +248,11 @@ const EventsList: React.FC<EventsListProps> = ({
 			{events && events.length > 0 ? (
 				<div className="flex flex-col gap-4 w-full">
 					{events.map((event) => (
-						<Card
+						<EventCard
 							key={event.event_uid}
-							className="flex flex-row items-start gap-4 p-4 transition-all duration-150 cursor-pointer hover:bg-default-100"
-							onMouseEnter={() =>
-								setHoveredEvent({
-									venue_uid: event.venue.venue_uid,
-									event_uid: event.event_uid
-								})
-							}
-							onMouseLeave={() => setHoveredEvent(null)}
-						>
-							<CardBody
-								className="flex flex-row gap-4 w-full"
-								onClick={() =>
-									setSelectedEvent({
-										venue_uid: event.venue.venue_uid,
-										event_uid: event.event_uid
-									})
-								}
-							>
-								<div className="flex flex-col items-center gap-4">
-									<EventImageWithDefault event={event} />
-									{event.start_time && (
-										<div className="flex text-default-500 items-center gap-2">
-											<ClockIcon size={14} />
-											<p className="text-sm text-center text-default-500">
-												{dayjs(event.start_time).format(
-													'h:mma'
-												)}
-											</p>
-										</div>
-									)}
-								</div>
-								<div className="flex flex-col flex-1 justify-center">
-									<h3 className="font-semibold text-lg">
-										{event.name}
-									</h3>
-									{event.venue?.host && (
-										<span className="inline-flex items-center gap-1 mt-2">
-											{event.venue.host
-												.profile_image_url && (
-												<Image
-													src={
-														event.venue.host
-															.profile_image_url
-													}
-													alt={event.venue.host.name}
-													className="h-6 w-6 object-cover rounded-full"
-												/>
-											)}
-											<button
-												className="text-sm text-default-500 cursor-pointer hover:text-default-700 bg-transparent border-none p-0"
-												onClick={(e) => {
-													e.stopPropagation();
-													setSelectedVenue({
-														host_uid:
-															event.venue.host
-																.host_uid,
-														venue_uid:
-															event.venue
-																.venue_uid
-													});
-												}}
-											>
-												{event.venue.name}
-											</button>
-										</span>
-									)}
-									{event.room && (
-										<span className="inline-flex items-center gap-1 mt-2">
-											{event.room.profile_image_url && (
-												<Image
-													src={
-														event.room
-															.profile_image_url
-													}
-													alt={event.room.name}
-													className="h-6 w-6 object-cover rounded-full"
-												/>
-											)}
-											<button
-												className="text-sm text-default-500 cursor-pointer hover:text-default-700 bg-transparent border-none p-0"
-												onClick={(e) => {
-													e.stopPropagation();
-													setSelectedVenue({
-														host_uid:
-															event.venue.host
-																.host_uid,
-														venue_uid:
-															event.venue
-																.venue_uid,
-														room_uid:
-															event.room.room_uid
-													});
-												}}
-											>
-												{event.room.name}
-											</button>
-										</span>
-									)}
-								</div>
-							</CardBody>
-						</Card>
+							event={event}
+							setSelectedEvent={setSelectedEvent}
+						/>
 					))}
 				</div>
 			) : (

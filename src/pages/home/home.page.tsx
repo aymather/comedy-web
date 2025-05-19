@@ -2,7 +2,7 @@ import DefaultLayout from '@/layouts/default';
 import { NanoId } from '@/types';
 import { Button } from '@heroui/react';
 import { getLocalTimeZone, today } from '@internationalized/date';
-import { Map } from 'lucide-react';
+import { List, Map } from 'lucide-react';
 import { useState } from 'react';
 import EventDatePickerControl from './components/EventDatePickerControl';
 import EventsList from './components/EventsList';
@@ -79,9 +79,10 @@ const HomePage = () => {
 					</div>
 					<div className="absolute bottom-0 left-0 right-0 flex justify-center mb-4 md:hidden z-20">
 						<Button
-							startContent={<Map />}
+							startContent={view === 'list' ? <Map /> : <List />}
 							variant="shadow"
 							color="default"
+							className="text-default-600"
 							onPress={() => {
 								if (view === 'list') {
 									setView('map');
@@ -94,7 +95,7 @@ const HomePage = () => {
 						</Button>
 					</div>
 				</div>
-				<div className="py-6 md:py-12 border-t">
+				<div className="py-6 md:py-12 border-t border-default-200/50">
 					<EventDatePickerControl
 						selectedDate={selectedDate}
 						setSelectedDate={setSelectedDate}
