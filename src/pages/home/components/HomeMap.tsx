@@ -1,5 +1,5 @@
 import Map from '@/components/Map';
-import { hostApiSlice } from '@/flux/api/host';
+import { Host } from '@/flux/api/host';
 import { Venue } from '@/flux/api/venue';
 import useMap from '@/hooks/useMap';
 import { useEffect } from 'react';
@@ -52,6 +52,7 @@ export const losAngelesDefaultPlaceDetails = {
 };
 
 interface HomeMapProps {
+	hosts?: Host[];
 	hoveredEvent: HoveredEvent | null;
 	selectedVenue: SelectedVenue | null;
 	setSelectedVenue: (venue: SelectedVenue | null) => void;
@@ -61,6 +62,7 @@ interface HomeMapProps {
 }
 
 const HomeMap = ({
+	hosts,
 	hoveredEvent,
 	selectedVenue,
 	setSelectedVenue,
@@ -68,7 +70,6 @@ const HomeMap = ({
 	setHoveredVenue,
 	selectedEvent
 }: HomeMapProps) => {
-	const { data: hosts } = hostApiSlice.useFindAllHostsQuery();
 	const { map, onIdle } = useMap();
 
 	const center = {

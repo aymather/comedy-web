@@ -1,5 +1,8 @@
+import { eventApiSlice } from '@/flux/api/event';
+import { hostApiSlice } from '@/flux/api/host';
 import DefaultLayout from '@/layouts/default';
 import { NanoId } from '@/types';
+import { dayjs } from '@/utils/dayjs';
 import { Button } from '@heroui/react';
 import { getLocalTimeZone, today } from '@internationalized/date';
 import { List, Map } from 'lucide-react';
@@ -8,6 +11,7 @@ import EventDatePickerControl from './components/EventDatePickerControl';
 import EventsList from './components/EventsList';
 import HomeMap from './components/HomeMap';
 import SelectEventDrawer from './components/SelectEventDrawer';
+import SelectVenueDrawer from './components/SelectVenueDrawer';
 
 type PageView = 'list' | 'map';
 
@@ -46,6 +50,13 @@ const HomePage = () => {
 
 	const closeSelectedVenue = () => setSelectedVenue(null);
 
+	const { data: hosts } = hostApiSlice.useFindAllHostsQuery();
+	const { data: events } = eventApiSlice.useFindAllEventsQuery({
+		params: {
+			date: dayjs(selectedDate.toString()).utc()
+		}
+	});
+
 	return (
 		<DefaultLayout>
 			<div className="flex flex-col h-full overflow-hidden">
@@ -56,6 +67,7 @@ const HomePage = () => {
 							className={`hidden md:flex flex-1 ${view === 'map' ? '!flex' : ''}`}
 						>
 							<HomeMap
+								hosts={hosts}
 								hoveredEvent={hoveredEvent}
 								selectedVenue={selectedVenue}
 								setSelectedVenue={setSelectedVenue}
@@ -68,10 +80,8 @@ const HomePage = () => {
 							className={`flex flex-1 flex-col overflow-y-auto pb-16 md:pb-0 ${view === 'map' ? 'hidden md:flex' : ''}`}
 						>
 							<EventsList
-								currentDate={selectedDate}
+								events={events}
 								setSelectedEvent={setSelectedEvent}
-								selectedVenue={selectedVenue}
-								closeSelectedVenue={closeSelectedVenue}
 								setHoveredEvent={setHoveredEvent}
 								setSelectedVenue={setSelectedVenue}
 							/>
@@ -106,6 +116,13 @@ const HomePage = () => {
 				selectedEvent={selectedEvent}
 				isOpen={selectedEvent !== null}
 				onClose={() => setSelectedEvent(null)}
+			/>
+			<SelectVenueDrawer
+				selectedVenue={selectedVenue}
+				isOpen={selectedVenue !== null}
+				onClose={() => setSelectedVenue(null)}
+				setSelectedVenue={setSelectedVenue}
+				setSelectedEvent={setSelectedEvent}
 			/>
 		</DefaultLayout>
 	);

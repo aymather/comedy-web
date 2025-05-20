@@ -1,6 +1,7 @@
 import { Alcohol, Food, PhoneFreeZone, TwoDrinks } from '@/components/icons';
 import Map from '@/components/Map';
 import { eventApiSlice } from '@/flux/api/event';
+import useEventImagePriority from '@/hooks/useEventImagePriority';
 import {
 	Button,
 	Drawer,
@@ -40,11 +41,8 @@ const SelectEventDrawer = ({
 		}
 	);
 
-	const images = [
-		event?.image_url,
-		event?.venue?.profile_image_url,
-		event?.venue?.stage_image_url
-	].filter(Boolean) as string[];
+	const { imagePriorityForEvent } = useEventImagePriority();
+	const images = imagePriorityForEvent(event);
 
 	return (
 		<Drawer
@@ -148,9 +146,9 @@ const SelectEventDrawer = ({
 							{/* Swiper header image */}
 							<Skeleton
 								className="rounded-lg"
-								isLoaded={!isFetching}
+								isLoaded={!isFetching || images === undefined}
 							>
-								<div className="h-[300px] rounded-2xl overflow-hidden">
+								<div className="h-[500px] rounded-2xl overflow-hidden">
 									<ImagesSwiper images={images} />
 								</div>
 							</Skeleton>

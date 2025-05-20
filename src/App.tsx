@@ -12,6 +12,9 @@ function App() {
 	return (
 		<Routes>
 			<Route element={<HomePage />} path="/" />
+
+			{/* TODO: Remove these eventually */}
+			<Route element={<DashboardPage />} path="/dashboard" />
 			<Route element={<HostPage />} path="/host/:host_uid" />
 			<Route
 				element={<VenuePage />}
@@ -23,17 +26,14 @@ function App() {
 			/>
 			<Route element={<EventPage />} path="/event/:event_uid" />
 
-			{/* Admin Stuff */}
-			<Route element={<ReviseEventsPage />} path="/revise-events" />
-
 			{import.meta.env.VITE_IS_DEV && (
 				<>
-					<Route element={<DashboardPage />} path="/dashboard" />
-					<Route element={<TestPage />} path="/test" />
+					{/* Admin Stuff */}
 					<Route
 						element={<ReviseEventsPage />}
 						path="/revise-events"
 					/>
+					<Route element={<TestPage />} path="/test" />
 				</>
 			)}
 		</Routes>

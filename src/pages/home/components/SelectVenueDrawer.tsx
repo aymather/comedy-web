@@ -1,8 +1,10 @@
 import { eventApiSlice } from '@/flux/api/event';
 import { venueApiSlice } from '@/flux/api/venue';
-import { NanoId } from '@/types';
+import useEventImagePriority from '@/hooks/useEventImagePriority';
 import {
+	Avatar,
 	Button,
+	Chip,
 	Drawer,
 	DrawerBody,
 	DrawerContent,
@@ -10,39 +12,40 @@ import {
 	DrawerHeader,
 	Image,
 	Link,
+	Skeleton,
 	Tooltip
 } from '@heroui/react';
 import { getLocalTimeZone, today } from '@internationalized/date';
 import dayjs from 'dayjs';
 import { useState } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import { SelectedEvent, SelectedVenue } from '../home.page';
 import EventDatePickerControl from './EventDatePickerControl';
+import ImagesSwiper from './ImagesSwiper';
 
 interface SelectVenueDrawerProps {
-	selectedVenue: {
-		host_uid: NanoId;
-		venue_uid: NanoId;
-	} | null;
 	isOpen: boolean;
 	onClose: () => void;
+	selectedVenue: SelectedVenue | null;
+	setSelectedVenue: (venue: SelectedVenue | null) => void;
+	setSelectedEvent: (event: SelectedEvent | null) => void;
 }
 
 const SelectVenueDrawer = ({
 	selectedVenue,
 	isOpen,
-	onClose
+	onClose,
+	setSelectedVenue,
+	setSelectedEvent
 }: SelectVenueDrawerProps) => {
 	const [selectedDate, setSelectedDate] = useState(today(getLocalTimeZone()));
-	const { data: venue } = venueApiSlice.useFindOneVenueQuery(
+	const { data: venue, isFetching } = venueApiSlice.useFindOneVenueQuery(
 		{
 			params: {
 				venue_uid: selectedVenue?.venue_uid || '',
 				host_uid: selectedVenue?.host_uid || ''
 			}
 		},
-		{
-			skip: !selectedVenue?.venue_uid || !selectedVenue?.host_uid
-		}
+		{ skip: !selectedVenue }
 	);
 
 	const { data: events } = eventApiSlice.useFindAllEventsQuery(
@@ -50,24 +53,15 @@ const SelectVenueDrawer = ({
 			params: {
 				host_uid: selectedVenue?.host_uid || '',
 				venue_uid: selectedVenue?.venue_uid || '',
+				room_uid: selectedVenue?.room_uid,
 				date: dayjs(selectedDate.toString()).utc()
 			}
 		},
-		{
-			skip:
-				!selectedVenue?.venue_uid ||
-				!selectedVenue?.host_uid ||
-				!selectedDate
-		}
+		{ skip: !selectedDate }
 	);
 
-	const [activeIndex, setActiveIndex] = useState(0);
-
-	const images = [
-		venue?.profile_image_url,
-		...(venue?.rooms.map((room) => room.profile_image_url) || []),
-		...(venue?.images.map((image) => image.url) || [])
-	].filter(Boolean);
+	const { imagePriorityForVenue } = useEventImagePriority();
+	const images = imagePriorityForVenue(venue);
 
 	if (!venue) return null;
 
@@ -154,37 +148,17 @@ const SelectVenueDrawer = ({
 								</Button>
 							</div>
 						</DrawerHeader>
-						<DrawerBody className="pt-16">
+						<DrawerBody className="pt-16 gap-8">
 							{/* Swiper header image */}
-							<div className="flex w-full justify-center items-center pt-4 relative">
-								<Swiper
-									spaceBetween={1}
-									slidesPerView={1}
-									onSlideChange={(swiper) =>
-										setActiveIndex(swiper.realIndex)
-									}
-									className="w-full max-w-md rounded-2xl overflow-hidden h-full"
-								>
-									{images.map((i) => (
-										<SwiperSlide
-											key={i}
-											className="w-full max-w-full"
-										>
-											<img
-												alt={venue.name}
-												className="w-full h-full object-cover"
-												height={300}
-												src={i || ''}
-											/>
-										</SwiperSlide>
-									))}
-								</Swiper>
-								{/* Slide indicator */}
-								<div className="absolute bottom-2 right-4 bg-black/50 text-white text-xs rounded-md px-2 py-1 z-10 backdrop-blur-sm">
-									{activeIndex + 1} / {images.length}
+							<Skeleton
+								className="rounded-lg"
+								isLoaded={!isFetching || images === undefined}
+							>
+								<div className="h-[500px] rounded-large overflow-hidden">
+									<ImagesSwiper images={images} />
 								</div>
-							</div>
-							<div className="flex flex-col gap-2 py-4">
+							</Skeleton>
+							<div className="flex flex-col gap-2">
 								<h1 className="text-2xl font-bold leading-7">
 									{venue.name}
 								</h1>
@@ -203,67 +177,144 @@ const SelectVenueDrawer = ({
 										</p>
 									</div>
 								)}
-								<div className="mt-4 flex flex-col gap-3">
-									{venue.host.description && (
-										<div className="flex flex-col mt-4 gap-3 items-start">
-											<span className="text-medium font-medium">
-												About the venue
-											</span>
-											<div className="text-medium text-default-500">
-												<p>{venue.host.description}</p>
-											</div>
-										</div>
-									)}
-									<EventDatePickerControl
-										selectedDate={selectedDate}
-										setSelectedDate={setSelectedDate}
-										size="sm"
-									/>
-									{/* Events for the selected day */}
-									<div className="mt-2">
-										{events && events.length > 0 ? (
-											<div className="flex flex-col gap-2">
-												{events.map((event) => (
-													<div
-														key={event.event_uid}
-														className="flex flex-row gap-2 p-2 rounded-lg border hover:bg-default-50 transition-colors shadow-sm"
-													>
-														<Image
-															src={
-																event.image_url ||
-																''
-															}
-															alt={event.name}
-															className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-														/>
-														<div className="flex flex-col flex-1 gap-1">
-															<span className="font-medium text-default-800">
-																{event.name}
-															</span>
-															{event.start_time && (
-																<span className="text-xs text-default-500">
-																	{new Date(
-																		event.start_time
-																	).toLocaleTimeString(
-																		[],
-																		{
-																			hour: '2-digit',
-																			minute: '2-digit'
-																		}
-																	)}
-																</span>
-															)}
-														</div>
-													</div>
-												))}
-											</div>
-										) : (
-											<div className="text-default-400 italic text-center text-xs py-2">
-												No events for this day.
-											</div>
-										)}
-									</div>
+							</div>
+							{venue.rooms && venue.rooms.length > 0 && (
+								<div className="flex flex-wrap gap-2">
+									{venue.rooms.map((room) => {
+										const isSelected =
+											selectedVenue?.room_uid ===
+											room.room_uid;
+										return (
+											<Chip
+												key={room.room_uid}
+												className="cursor-pointer hover:bg-default-100 dark:hover:bg-neutral-800"
+												avatar={
+													<Avatar
+														name={room.name}
+														src={
+															room.profile_image_url ||
+															undefined
+														}
+														size="sm"
+													/>
+												}
+												variant="bordered"
+												color={
+													isSelected
+														? 'warning'
+														: undefined
+												}
+												onClick={
+													isSelected
+														? undefined
+														: () =>
+																setSelectedVenue(
+																	{
+																		...selectedVenue!,
+																		room_uid:
+																			room.room_uid
+																	}
+																)
+												}
+												onClose={
+													isSelected
+														? () =>
+																setSelectedVenue(
+																	{
+																		host_uid:
+																			selectedVenue!
+																				.host_uid,
+																		venue_uid:
+																			selectedVenue!
+																				.venue_uid
+																	}
+																)
+														: undefined
+												}
+											>
+												{room.name}
+											</Chip>
+										);
+									})}
 								</div>
+							)}
+							<EventDatePickerControl
+								selectedDate={selectedDate}
+								setSelectedDate={setSelectedDate}
+								forceMobileSize={true}
+							/>
+							<div className="flex flex-col gap-3">
+								{/* Events for the selected day */}
+								{events && events.length > 0 ? (
+									<div className="flex flex-col gap-2">
+										{events.map((event) => (
+											<div
+												key={event.event_uid}
+												className="flex flex-row gap-2 p-2 rounded-lg border border-default-200/50 hover:bg-default-50 transition-colors shadow-sm"
+												role="button"
+												tabIndex={0}
+												onKeyDown={(e) => {
+													if (e.key === 'Enter') {
+														setSelectedEvent({
+															venue_uid:
+																selectedVenue!
+																	.venue_uid,
+															event_uid:
+																event.event_uid
+														});
+													}
+												}}
+												onClick={() =>
+													setSelectedEvent({
+														venue_uid:
+															selectedVenue!
+																.venue_uid,
+														event_uid:
+															event.event_uid
+													})
+												}
+											>
+												<Image
+													src={event.image_url || ''}
+													alt={event.name}
+													className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+												/>
+												<div className="flex flex-col flex-1 gap-1">
+													<span className="font-medium text-default-800">
+														{event.name}
+													</span>
+													{event.start_time && (
+														<span className="text-xs text-default-500">
+															{new Date(
+																event.start_time
+															).toLocaleTimeString(
+																[],
+																{
+																	hour: '2-digit',
+																	minute: '2-digit'
+																}
+															)}
+														</span>
+													)}
+												</div>
+											</div>
+										))}
+									</div>
+								) : (
+									<div className="text-default-400 italic text-center text-xs py-2">
+										No events for this day.
+									</div>
+								)}
+								{venue.host.description && (
+									<div className="flex flex-col mt-4 gap-3 items-start">
+										<span className="text-medium font-medium">
+											About the venue
+										</span>
+										<div className="text-medium text-default-500">
+											<p>{venue.host.description}</p>
+										</div>
+									</div>
+								)}
 							</div>
 						</DrawerBody>
 						<DrawerFooter className="flex flex-col gap-1 border-t border-default-200/50">

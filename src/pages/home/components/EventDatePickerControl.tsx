@@ -23,11 +23,13 @@ import { useState } from 'react';
 interface EventDatePickerControlProps {
 	selectedDate: CalendarDate;
 	setSelectedDate: (date: CalendarDate) => void;
+	forceMobileSize?: boolean;
 }
 
 const EventDatePickerControl: React.FC<EventDatePickerControlProps> = ({
 	selectedDate,
-	setSelectedDate
+	setSelectedDate,
+	forceMobileSize = false
 }) => {
 	const tz = getLocalTimeZone();
 	const todayDate = today(tz);
@@ -53,10 +55,12 @@ const EventDatePickerControl: React.FC<EventDatePickerControlProps> = ({
 			<button
 				onClick={() => canGoLeft && setWeekStartDate(prevWeekStart)}
 				disabled={!canGoLeft}
-				className={`w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-full transition-colors mr-2 ${!canGoLeft ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+				className={`${forceMobileSize ? 'w-6 h-6' : 'w-6 h-6 md:w-8 md:h-8'} flex items-center justify-center rounded-full transition-colors mr-2 ${!canGoLeft ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
 				aria-label="Previous week"
 			>
-				<ChevronLeft className="w-4 h-4 md:w-6 md:h-6" />
+				<ChevronLeft
+					className={`${forceMobileSize ? 'w-4 h-4' : 'w-4 h-4 md:w-6 md:h-6'}`}
+				/>
 			</button>
 
 			{/* Week Dates */}
@@ -114,7 +118,7 @@ const EventDatePickerControl: React.FC<EventDatePickerControlProps> = ({
 								if (!disabled) setSelectedDate(date);
 							}}
 							disabled={disabled}
-							className={`w-9 h-9 text-sm md:w-14 md:h-14 md:text-lg rounded-full flex items-center justify-center font-medium transition-colors ${btnClass} ${textClass}`}
+							className={`${forceMobileSize ? 'w-9 h-9 text-sm' : 'w-9 h-9 text-sm md:w-14 md:h-14 md:text-lg'} rounded-full flex items-center justify-center font-medium transition-colors ${btnClass} ${textClass}`}
 						>
 							{date.day}
 						</button>
@@ -125,14 +129,18 @@ const EventDatePickerControl: React.FC<EventDatePickerControlProps> = ({
 			{/* Right Arrow */}
 			<button
 				onClick={() => setWeekStartDate(nextWeekStart)}
-				className={`w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-full transition-colors ml-2 hover:bg-gray-200 dark:hover:bg-gray-700`}
+				className={`${forceMobileSize ? 'w-6 h-6' : 'w-6 h-6 md:w-8 md:h-8'} flex items-center justify-center rounded-full transition-colors ml-2 hover:bg-gray-200 dark:hover:bg-gray-700`}
 				aria-label="Next week"
 			>
-				<ChevronRight className="w-4 h-4 md:w-6 md:h-6" />
+				<ChevronRight
+					className={`${forceMobileSize ? 'w-4 h-4' : 'w-4 h-4 md:w-6 md:h-6'}`}
+				/>
 			</button>
 
 			{/* Calendar Popover Button */}
-			<div className="hidden md:block">
+			<div
+				className={`${forceMobileSize ? 'hidden' : 'hidden md:block'}`}
+			>
 				<Popover placement="bottom">
 					<PopoverTrigger>
 						<Button
